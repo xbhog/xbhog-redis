@@ -17,20 +17,14 @@ import java.util.Objects;
 public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        HttpSession session = request.getSession();
-        UserDTO user = (UserDTO) session.getAttribute("user");
-        //查看用户是否存在
-        if(Objects.isNull(user)){
-            //返回无权限
+        // 1.判断是否需要拦截（ThreadLocal中是否有用户）
+        if (UserHolder.getUser() == null) {
+            // 没有，需要拦截，设置状态码
             response.setStatus(401);
+            // 拦截
             return false;
         }
-        UserHolder.saveUser(user);
-        return HandlerInterceptor.super.preHandle(request, response, handler);
-    }
-
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        HandlerInterceptor.super.afterCompletion(request, response, handler, ex);
+        // 有用户，则放行
+        return true;
     }
 }
