@@ -5,14 +5,14 @@ spring:
     name: hmdp
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://1.15.86.246:3306/hmdp?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://xx.xx.xx.xx:3306/hmdp?useSSL=false&serverTimezone=UTC
     username: hmdp
     password: 111111
   redis:
     database: 0
-    host: 1.15.86.246      # Redis服务器地址，修改为你的地址
+    host: xxx.xxx.xxx.xxx      # Redis服务器地址，修改为你的地址
     port: 6379              # Redis服务器连接端口
-    password:           # Redis服务器连接密码（默认为空）
+    password: xxxxx        # Redis服务器连接密码（默认为空）
     timeout: 3000           # Redis服务器链接超时配置
     lettuce:
       pool:
