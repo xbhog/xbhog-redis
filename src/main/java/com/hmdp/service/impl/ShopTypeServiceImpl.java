@@ -2,6 +2,7 @@ package com.hmdp.service.impl;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hmdp.dto.Result;
@@ -42,17 +43,17 @@ public class ShopTypeServiceImpl extends ServiceImpl<ShopTypeMapper, ShopType> i
     @Override
     public Result queryTypeById(Integer typeId, Integer current) {
         String shopTypeStr = stringRedisTemplate.opsForValue().get(SHOP_TYPE_CACHE_KEY + typeId);
-        List<Shop> shopTypes = Convert.toList(Shop.class, shopTypeStr);
-        if(ObjectUtil.isNotEmpty(shopTypes)){
-            return Result.ok(shopTypes);
+        log.info("======>查看redis:{}",shopTypeStr);
+        if(StrUtil.isNotBlank(shopTypeStr)){
+            List<Shop> shops = JSONUtil.toList(shopTypeStr, Shop.class);
+            return Result.ok(shops);
         }
         Page<Shop> page = shopService.query()
                 .eq("type_id", typeId)
                 .page(new Page<>(current, SystemConstants.DEFAULT_PAGE_SIZE));
         List<Shop> shopRecords = page.getRecords();
-        String shopString = Convert.toStr(shopRecords);
-        stringRedisTemplate.opsForValue().set(SHOP_TYPE_CACHE_KEY+typeId,shopString);
-        log.info("======>商户类型加入缓存：{}",shopString);
+        stringRedisTemplate.opsForValue().set(SHOP_TYPE_CACHE_KEY+typeId,JSONUtil.toJsonStr(shopRecords));
+        log.info("======>商户类型加入缓存：{}",JSONUtil.toJsonStr(shopRecords));
         return Result.ok(shopRecords);
     }
 }

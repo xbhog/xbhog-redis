@@ -8,5 +8,6 @@ public class SystemConstants {
     public static final String PHONE_CODE_KEY = "phone:code:";
     public static final String LOGIN_USER_KEY = "login:token:";
     public static final String SHOP_CACHE_KEY = "cache:shop:";
+    public static final String SHOP_UPDATE_CACHE_KEY = "update:shop:cache:";
     public static final String SHOP_TYPE_CACHE_KEY = "cache:shopType:";
 }
