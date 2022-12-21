@@ -45,9 +45,15 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             Shop shop = JSONUtil.toBean(shopInfo, Shop.class);
             return Result.ok(shop);
         }
+        //为“”，但是不为null,有缓存
+        if(shopInfo != null){
+            return Result.fail("店铺信息不存在");
+        }
         //未命中缓存
         Shop shop = getById(id);
         if(Objects.isNull(shop)){
+            //将null添加至缓存，过期时间减少
+            stringRedisTemplate.opsForValue().set(SHOP_CACHE_KEY+id,"",5L, TimeUnit.MINUTES);
             return Result.fail("店铺不存在");
         }
         //对象转字符串
@@ -66,6 +72,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         //更新数据库
         updateById(shop);
         stringRedisTemplate.delete(SHOP_CACHE_KEY + id);
+        //int i = 1/0;  验证异常流程后，
         return Result.ok();
     }
 }

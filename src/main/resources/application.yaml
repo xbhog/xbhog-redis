@@ -29,3 +29,7 @@ logging:
     com.hmdp: debug
   pattern:
     dateformat: mm:ss.SSS
+rocketmq:
+  name-server: 110.40.200.174:9876;1.15.86.246:9876
+  producer:
+    group: test-group
