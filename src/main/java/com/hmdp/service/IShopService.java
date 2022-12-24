@@ -3,6 +3,8 @@ package com.hmdp.service;
 import com.hmdp.dto.Result;
 import com.hmdp.entity.Shop;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.remoting.exception.RemotingException;
 
 /**
  * <p>
@@ -16,5 +18,5 @@ public interface IShopService extends IService<Shop> {
 
     Result queryById(Long id);
 
-    Result updateShopById(Shop shop);
+    Result updateShopById(Shop shop) throws RemotingException, InterruptedException, MQClientException;
 }
