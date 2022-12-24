@@ -9,17 +9,15 @@ import com.hmdp.mapper.ShopMapper;
 import com.hmdp.service.IShopService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-
 import javax.annotation.Resource;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-
 import static com.hmdp.utils.SystemConstants.SHOP_CACHE_KEY;
-import static com.hmdp.utils.SystemConstants.SHOP_UPDATE_CACHE_KEY;
 
 /**
  * <p>
@@ -35,6 +33,12 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private RocketMQTemplate rocketMQTemplate;
+
+    public static final String TOPIC_SHOP = "shopTopic1";
+
 
     @Override
     public Result queryById(Long id) {
@@ -71,7 +75,15 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         log.info("====》开始更新数据库");
         //更新数据库
         updateById(shop);
-        stringRedisTemplate.delete(SHOP_CACHE_KEY + id);
+        String shopRedisKey = SHOP_CACHE_KEY + id;
+        Message message = new Message(TOPIC_SHOP,"shopRe",shopRedisKey.getBytes());
+        //异步发送MQ
+        try {
+            rocketMQTemplate.getProducer().send(message);
+        } catch (Exception e) {
+            log.info("=========>发送异步消息失败：{}",e.getMessage());
+        }
+        //stringRedisTemplate.delete(SHOP_CACHE_KEY + id);
         //int i = 1/0;  验证异常流程后，
         return Result.ok();
     }
