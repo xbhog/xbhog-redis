@@ -30,6 +30,6 @@ logging:
   pattern:
     dateformat: mm:ss.SSS
 rocketmq:
-  name-server: 110.40.200.174:9876;1.15.86.246:9876
+  name-server: xxx.xxx.xxx.174:9876;xxx.xxx.xxx.246:9876
   producer:
-    group: test-group
+    group: shopDataGroup
