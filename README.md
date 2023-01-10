@@ -13,6 +13,10 @@ origin/20221212-xbhog-cacheRedis
 4. 将redis放入中间件，增加RocketMQ重试操作
 ## 【3】基于Redis实现缓存穿透功能 
 origin/20221221-xbhog-cacheBrenkdown
-1. 增加缓存击穿功能：
+1. 解决缓存击穿功能：
    - 增加空缓存(V)
    - 设置布隆过滤器
+## 【4】基于Redis实现缓存雪崩和缓存击穿
+20230110-xbhog-Cache_Penetration_Avalance p44
+1. 解决缓存雪崩功能
+2. 解决缓存击穿功能
