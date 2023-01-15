@@ -11,6 +11,7 @@ import com.hmdp.entity.Shop;
 import com.hmdp.mapper.ShopMapper;
 import com.hmdp.service.IShopService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hmdp.utils.CacheClientUtil;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.Message;
@@ -26,8 +27,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static com.hmdp.utils.RedisConstants.CACHE_SHOP_KEY;
-import static com.hmdp.utils.RedisConstants.LOCK_SHOP_KEY;
+import static com.hmdp.utils.RedisConstants.*;
 import static com.hmdp.utils.SystemConstants.SHOP_CACHE_KEY;
 
 /**
@@ -49,21 +49,42 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     private RocketMQTemplate rocketMQTemplate;
 
     public static final String TOPIC_SHOP = "shopTopic1";
+    @Resource
+    private CacheClientUtil cacheClientUtil;
 
 
     @Override
     public Result queryById(Long id) {
-        //解决缓存穿透
-        //Shop shop = queryWithPassThrough(id);
-        //互斥锁：解决缓存击穿
-        //Shop shop = queryWithMutex(id);
+        //Shop shop = getShop(id);
+        //缓存击穿工具类实现
+        //内容形式:id1 -> getById(id1) == this:getById()
+        //传递值:id,getById返回值Shop
+        //Shop shop = cacheClientUtil.queryWithPassThrough(CACHE_SHOP_KEY + id, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
 
-        //利用逻辑过期解决缓存击穿
-        Shop shop = queryWithLogicalExpire(id);
+        //逻辑过期解决缓存击穿
+       // Shop shop = cacheClientUtil.queryWithLogicalExpire((CACHE_SHOP_KEY + id, id, Shop.class, this::getById, 20L, TimeUnit.SECONDS);
+
+        //互斥锁解决缓存击穿
+        Shop shop = cacheClientUtil.queryWithLogicalExpire(CACHE_SHOP_KEY, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
         if(Objects.isNull(shop)){
             return Result.fail("店铺信息不存在");
         }
         return Result.ok(shop);
+    }
+
+    /**
+     * 缓存穿透\击穿的基本操作
+     * @param id
+     * @return
+     */
+    private Shop getShop(Long id) {
+        //解决缓存穿透
+        //Shop shop = queryWithPassThrough(id);
+        //互斥锁：解决缓存击穿
+        //Shop shop = queryWithMutex(id);
+        //利用逻辑过期解决缓存击穿
+        Shop shop = queryWithLogicalExpire(id);
+        return shop;
     }
 
     /**
