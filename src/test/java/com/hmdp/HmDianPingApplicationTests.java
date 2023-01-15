@@ -1,22 +1,22 @@
 package com.hmdp;
 
-import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.client.producer.DefaultMQProducer;
-import org.apache.rocketmq.client.producer.SendResult;
-import org.apache.rocketmq.common.message.Message;
-import org.apache.rocketmq.remoting.common.RemotingHelper;
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import com.hmdp.service.impl.ShopServiceImpl;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import javax.annotation.Resource;
 
 
 @SpringBootTest
 class HmDianPingApplicationTests {
+    @Resource
+    private ShopServiceImpl shopService;
 
-
+    /**
+     * 增加活动热key
+     * @throws Exception
+     */
     @Test
     public void productTest() throws Exception {
-
+        shopService.saveShop2Redis(1L,10L);
     }
 }
