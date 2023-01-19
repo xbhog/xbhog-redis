@@ -8,8 +8,6 @@ import com.hmdp.entity.Shop;
 import com.hmdp.service.IShopService;
 import com.hmdp.service.IShopTypeService;
 import com.hmdp.utils.SystemConstants;
-import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;

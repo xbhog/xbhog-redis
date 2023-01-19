@@ -2,18 +2,13 @@ package com.hmdp.utils;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.hmdp.dto.UserDTO;
-import io.netty.util.internal.StringUtil;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static com.hmdp.utils.SystemConstants.LOGIN_USER_KEY;
