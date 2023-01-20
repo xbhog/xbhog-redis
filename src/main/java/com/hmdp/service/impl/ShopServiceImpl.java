@@ -65,7 +65,8 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
        // Shop shop = cacheClientUtil.queryWithLogicalExpire((CACHE_SHOP_KEY + id, id, Shop.class, this::getById, 20L, TimeUnit.SECONDS);
 
         //互斥锁解决缓存击穿
-        Shop shop = cacheClientUtil.queryWithLogicalExpire(CACHE_SHOP_KEY, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
+        //Shop shop = cacheClientUtil.queryWithLogicalExpire(CACHE_SHOP_KEY, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
+        Shop shop = this.queryWithLogicalExpire(id);
         if(Objects.isNull(shop)){
             return Result.fail("店铺信息不存在");
         }
@@ -114,18 +115,32 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
                 //递归等待
                 return queryWithMutex(id);
             }
-            //未命中缓存
-            shop = getById(id);
-            // 5.不存在，返回错误
-            if(Objects.isNull(shop)){
-                //将null添加至缓存，过期时间减少
-                stringRedisTemplate.opsForValue().set(SHOP_CACHE_KEY+id,"",5L, TimeUnit.MINUTES);
-                return null;
+            //获取锁成功应该再次检测redis缓存是否还存在，做doubleCheck,如果存在则无需重建缓存。
+            synchronized (this){
+                //从redis查询商铺信息
+                String shopInfoTwo = stringRedisTemplate.opsForValue().get(SHOP_CACHE_KEY + id);
+                //命中缓存，返回店铺信息
+                if(StrUtil.isNotBlank(shopInfoTwo)){
+                    return JSONUtil.toBean(shopInfoTwo, Shop.class);
+                }
+                //redis既没有key的缓存,但查出来信息不为null,则为“”
+                if(shopInfoTwo != null){
+                    return null;
+                }
+                //未命中缓存
+                shop = getById(id);
+                // 5.不存在，返回错误
+                if(Objects.isNull(shop)){
+                    //将null添加至缓存，过期时间减少
+                    stringRedisTemplate.opsForValue().set(SHOP_CACHE_KEY+id,"",5L, TimeUnit.MINUTES);
+                    return null;
+                }
+                //模拟重建的延时
+                Thread.sleep(200);
+                //对象转字符串
+                stringRedisTemplate.opsForValue().set(SHOP_CACHE_KEY+id,JSONUtil.toJsonStr(shop),30L, TimeUnit.MINUTES);
             }
-            //模拟重建的延时
-            Thread.sleep(200);
-            //对象转字符串
-            stringRedisTemplate.opsForValue().set(SHOP_CACHE_KEY+id,JSONUtil.toJsonStr(shop),30L, TimeUnit.MINUTES);
+
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
