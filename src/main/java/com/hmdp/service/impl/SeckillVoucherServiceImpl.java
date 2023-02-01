@@ -48,6 +48,12 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
         if(voucher.getStock() < 1){
             return Result.fail("库存不足，正在补充!");
         }
+        Long userId = UserHolder.getUser().getId();
+        //一人一单逻辑
+        Integer count = voucherOrderService.query().eq("voucher_id", voucherId).eq("user_id", userId).count();
+        if(count > 0){
+            return Result.fail("该用户已参加活动。");
+        }
         //开始扣减库存(通过乐观锁--->对应数据库中行锁实现)
         boolean success  = seckillVoucherMapper.updateDateByVoucherId(voucher);
         if(!success){
@@ -57,7 +63,7 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
         VoucherOrder voucherOrder = new VoucherOrder();
         long orderId = redisIdWorker.nextId("order");
         voucherOrder.setId(orderId);
-        voucherOrder.setUserId(UserHolder.getUser().getId());
+        voucherOrder.setUserId(userId);
         voucherOrder.setVoucherId(voucherId);
         voucherOrderService.save(voucherOrder);
         return Result.ok(orderId);
