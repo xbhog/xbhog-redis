@@ -27,6 +27,8 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
     @Resource
     private ISeckillVoucherService seckillVoucherService;
     @Resource
+    private SeckillVoucherMapper seckillVoucherMapper;
+    @Resource
     private IVoucherOrderService voucherOrderService;
     @Resource
     private RedisIdWorker redisIdWorker;
@@ -46,9 +48,8 @@ public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper,
         if(voucher.getStock() < 1){
             return Result.fail("库存不足，正在补充!");
         }
-        //开始扣减库存
-        voucher.setStock(voucher.getStock()-1);
-        boolean success  = seckillVoucherService.updateById(voucher);
+        //开始扣减库存(通过乐观锁--->对应数据库中行锁实现)
+        boolean success  = seckillVoucherMapper.updateDateByVoucherId(voucher);
         if(!success){
             return Result.fail("库存不足，正在补充!");
         }
