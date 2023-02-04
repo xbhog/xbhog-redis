@@ -27,6 +27,11 @@ class HmDianPingApplicationTests {
     public void productTest() throws Exception {
         shopService.saveShop2Redis(1L,10L);
     }
+
+    /**
+     * 测试全局唯一ID生成器
+     * @throws InterruptedException
+     */
     @Test
     public  void testIdWorker() throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(300);
