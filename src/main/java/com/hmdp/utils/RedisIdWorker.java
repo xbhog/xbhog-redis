@@ -39,8 +39,15 @@ public class RedisIdWorker {
         //生成序列号
         //获取当日日期，精确到天
         String date = dateTime.format(DateTimeFormatter.ofPattern("yyyy:MM:dd"));
+        //自增长上限2^64
         long count = stringRedisTemplate.opsForValue().increment("icr:" + keyPrefix + ":" + date);
         //左移32位(时间戳)，右32补零(序列号)，然后进行与运算获得64位
         return timestamp << COUNT_BITS | count;
+    }
+
+    public static void main(String[] args) {
+        LocalDateTime time = LocalDateTime.of(2023, 1, 1, 0, 0, 0);
+        long l = time.toEpochSecond(ZoneOffset.UTC);
+        System.out.println(l);
     }
 }
