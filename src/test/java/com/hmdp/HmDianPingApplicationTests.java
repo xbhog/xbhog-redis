@@ -39,14 +39,18 @@ class HmDianPingApplicationTests {
         Runnable task = ()->{
             for (int i = 0; i < 100; i++) {
                 long id = redisIdWorker.nextId("order");
-                System.out.println("id"+id);
+                System.out.println("id："+id);
             }
+            //计数-1
             countDownLatch.countDown();
         };
         long begin = System.currentTimeMillis();
         for (int i = 0; i < 300; i++) {
             executorService.submit(task);
         }
+        //id：148285184708444304    0010 0000 1110 1101 0000 1001 0111 0000 0000 0000 0000 0000 0000 1001 0000
+        //id：148285184708444305    0010 0000 1110 1101 0000 1001 0111 0000 0000 0000 0000 0000 0000 1001 0001
+        //等待子线程结束
         countDownLatch.await();
         long endTime = System.currentTimeMillis();
         System.out.println("time= "+(endTime-begin));
