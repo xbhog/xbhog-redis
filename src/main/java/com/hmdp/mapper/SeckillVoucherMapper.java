@@ -15,4 +15,6 @@ import org.apache.ibatis.annotations.Param;
 public interface SeckillVoucherMapper extends BaseMapper<SeckillVoucher> {
 
     boolean updateDateByVoucherId(@Param("voucherId") Long voucherId);
+
+    boolean updateDateByVoucherIdAndStock(@Param("voucherId") Long voucherId,@Param("stock") Integer stock);
 }

@@ -6,4 +6,7 @@
     <update id="updateDateByVoucherId">
         update tb_seckill_voucher set stock=stock -1  where voucher_id =  #{voucherId} and stock > 0
     </update>
+    <update id="updateDateByVoucherIdAndStock">
+        update tb_seckill_voucher set stock=stock -1  where voucher_id =  #{voucherId} and stock = #{stock}
+    </update>
 </mapper>
