@@ -11,7 +11,6 @@ import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,13 +54,23 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         if(voucher.getStock() < 1){
             return Result.fail("库存不足，正在补充!");
         }
-        Long userId = UserHolder.getUser().getId();
-
-        synchronized (userId.toString().intern()){
-            //获取原始事务代理对象
-            IVoucherOrderService iVoucherOrderService = (IVoucherOrderService) AopContext.currentProxy();
-            return iVoucherOrderService.createVoucherOrder(voucherId);
+        boolean success  = seckillVoucherMapper.updateDateByVoucherId(voucherId);
+        //boolean success  = seckillVoucherMapper.updateDateByVoucherIdAndStock(voucherId,voucher.getStock());
+        if(!success){
+            return Result.fail("库存不足，正在补充!");
         }
+        //6.创建订单
+        VoucherOrder voucherOrder = new VoucherOrder();
+        // 6.1.订单id
+        long orderId = redisIdWorker.nextId("order");
+        voucherOrder.setId(orderId);
+        // 6.2.用户id
+        Long userId = UserHolder.getUser().getId();
+        voucherOrder.setUserId(userId);
+        // 6.3.代金券id
+        voucherOrder.setVoucherId(voucherId);
+        save(voucherOrder);
+        return Result.ok(orderId);
     }
     @Override
     @Transactional
