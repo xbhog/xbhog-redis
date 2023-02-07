@@ -59,7 +59,8 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         //缓存击穿工具类实现
         //内容形式:id1 -> getById(id1) == this:getById()
         //传递值:id,getById返回值Shop
-        //Shop shop = cacheClientUtil.queryWithPassThrough(CACHE_SHOP_KEY + id, id, Shop.class, this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);
+        /*Shop shop = cacheClientUtil.queryWithPassThrough(CACHE_SHOP_KEY + id, id, Shop.class,
+                this::getById, CACHE_SHOP_TTL, TimeUnit.MINUTES);*/
 
         //逻辑过期解决缓存击穿
        // Shop shop = cacheClientUtil.queryWithLogicalExpire((CACHE_SHOP_KEY + id, id, Shop.class, this::getById, 20L, TimeUnit.SECONDS);
