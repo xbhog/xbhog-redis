@@ -9,9 +9,11 @@ import com.hmdp.mapper.VoucherOrderMapper;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.RedisIdWorker;
+import com.hmdp.utils.SimpleRedisLock;
 import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.framework.AopContext;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +39,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private IVoucherOrderService voucherOrderService;
     @Resource
     private RedisIdWorker redisIdWorker;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
 
     @Override
@@ -56,12 +60,21 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             return Result.fail("库存不足，正在补充!");
         }
         Long userId = UserHolder.getUser().getId();
-
-        synchronized (userId.toString().intern()){
+        SimpleRedisLock simpleRedisLock = new SimpleRedisLock("order:"+userId,stringRedisTemplate);
+        boolean tryLock = simpleRedisLock.tryLock(1200L);
+        if(!tryLock){
+            return Result.fail("一人一单规则");
+        }
+        try {
             //获取原始事务代理对象
             IVoucherOrderService iVoucherOrderService = (IVoucherOrderService) AopContext.currentProxy();
             return iVoucherOrderService.createVoucherOrder(voucherId);
+        } catch (IllegalStateException e) {
+            log.info("一人一单执行失败：{}",e.getMessage());
+        } finally {
+            simpleRedisLock.unLock();
         }
+        return Result.fail("一人一单流程执行异常");
     }
     @Override
     @Transactional
