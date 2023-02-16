@@ -1,5 +1,6 @@
 package com.hmdp.utils;
 
+import cn.hutool.core.lang.UUID;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -13,9 +14,10 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class SimpleRedisLock implements ILock{
 
-    private String keyName;
-    private StringRedisTemplate stringRedisTemplate;
-    private static final String keyPrefix = "lock:";
+    private final String keyName;
+    private final StringRedisTemplate stringRedisTemplate;
+    private static final String KEY_PREFIX = "lock:";
+    private static final String ID_PREFIX = UUID.fastUUID().toString(true)+"-";
 
     public SimpleRedisLock(String keyName, StringRedisTemplate stringRedisTemplate) {
         this.keyName = keyName;
@@ -24,14 +26,21 @@ public class SimpleRedisLock implements ILock{
 
     @Override
     public boolean tryLock(Long timeOutSec) {
-        long threadId = Thread.currentThread().getId();
-        Boolean isLock = stringRedisTemplate.opsForValue().setIfAbsent(keyPrefix + keyName, threadId + "", timeOutSec, TimeUnit.SECONDS);
+        String threadId = ID_PREFIX + Thread.currentThread().getId();
+        Boolean isLock = stringRedisTemplate.opsForValue().setIfAbsent(KEY_PREFIX + keyName, threadId + "", timeOutSec, TimeUnit.SECONDS);
         //防止拆箱引发空值异常
         return Boolean.TRUE.equals(isLock);
     }
 
     @Override
     public void unLock() {
-        stringRedisTemplate.delete(keyPrefix + keyName);
+        String threadId = ID_PREFIX + Thread.currentThread().getId();
+        //获取当前分布式锁中的value
+        String id = stringRedisTemplate.opsForValue().get(KEY_PREFIX + keyName);
+        //锁相同则删除
+        if(threadId.equals(id)){
+            stringRedisTemplate.delete(KEY_PREFIX + keyName);
+        }
+
     }
 }
