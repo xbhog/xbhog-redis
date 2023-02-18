@@ -1,5 +1,7 @@
 # Redis场景实践
 教程：bilibi黑马redis从入门到实践
+
+深造redis的实现和使用场景
 ## 【1】基于redis用户登录注册 
 分支：origin/20221207-xbhog-sessionRedis
 1. 增加发送短信和用户登录注册功能(V)
