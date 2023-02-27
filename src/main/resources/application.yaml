@@ -5,14 +5,14 @@ spring:
     name: hmdp
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://xx.xx.xx.xx:3306/hmdp?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/hmdp?useSSL=false&serverTimezone=UTC
     username: hmdp
     password: 111111
   redis:
     database: 0
-    host: xxx.xxx.xxx.xxx      # Redis服务器地址，修改为你的地址
+    host: localhost    # Redis服务器地址，修改为你的地址
     port: 6379              # Redis服务器连接端口
-    password: xxxxx        # Redis服务器连接密码（默认为空）
+    password: 111111        # Redis服务器连接密码（默认为空）
     timeout: 3000           # Redis服务器链接超时配置
     lettuce:
       pool:
@@ -30,6 +30,6 @@ logging:
   pattern:
     dateformat: mm:ss.SSS
 rocketmq:
-  name-server: xxx.xxx.xxx.174:9876;xxx.xxx.xxx.246:9876
+  name-server: 110.40.200.174:9876;localhost:9876
   producer:
     group: shopDataGroup

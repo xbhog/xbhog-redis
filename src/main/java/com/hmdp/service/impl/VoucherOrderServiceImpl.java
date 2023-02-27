@@ -9,16 +9,19 @@ import com.hmdp.mapper.VoucherOrderMapper;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.RedisIdWorker;
-import com.hmdp.utils.SimpleRedisLock;
 import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.aop.framework.AopContext;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.concurrent.*;
 
 /**
  * <p>
@@ -41,8 +44,52 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private RedisIdWorker redisIdWorker;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    private static final DefaultRedisScript<Long> SPIKE_OPT;
+    /**
+     * 阻塞队列
+     */
+    private final BlockingQueue<VoucherOrder> orderTakes = new ArrayBlockingQueue<VoucherOrder>(1024*1024);
+    /*
+    * 创建线程池
+    */
+    private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(3,5,
+            10, TimeUnit.SECONDS,
+            new LinkedBlockingDeque<>());
+    static {
+        SPIKE_OPT = new DefaultRedisScript<>();
+        SPIKE_OPT.setLocation(new ClassPathResource(("SpikeOptimization.lua")));
+        SPIKE_OPT.setResultType(Long.class);
+    }
+    @PostConstruct
+    public void init(){
+        Runnable VoucherOrderHandler = null;
+        EXECUTOR.execute(VoucherOrderHandler);
+    }
+    private class VoucherOrderHandler implements Runnable{
 
+        @Override
+        public void run() {
+            while (true){
+                 try {
+                     VoucherOrder voucherOrder = orderTakes.take();
+                     //创建订单
+                     handleVoucherOrder(voucherOrder);
+                 }catch (Exception e){
 
+                 }
+            }
+        }
+
+        /**
+         * 保存订单
+         * @param voucherOrder
+         */
+        private void handleVoucherOrder(VoucherOrder voucherOrder) {
+            //获取用户Id
+            Long userId = voucherOrder.getUserId();
+            save(voucherOrder);
+        }
+    }
     @Override
     public Result seckillVoucher(Long voucherId) {
         //查询优惠卷库存信息
@@ -60,21 +107,23 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             return Result.fail("库存不足，正在补充!");
         }
         Long userId = UserHolder.getUser().getId();
-        SimpleRedisLock simpleRedisLock = new SimpleRedisLock("order:"+userId,stringRedisTemplate);
-        boolean tryLock = simpleRedisLock.tryLock(1200L);
-        if(!tryLock){
-            return Result.fail("一人一单规则");
+        long orderId = redisIdWorker.nextId("order");
+        //执行lua脚本
+        Long execute = stringRedisTemplate.execute(SPIKE_OPT, Collections.emptyList(),
+                voucherId.toString(), userId.toString());
+        assert execute != null;
+        int r = execute.intValue();
+        if(r != 0){
+            return Result.fail(r == 1 ? "库存不足" : "不能重复下单");
         }
-        try {
-            //获取原始事务代理对象
-            IVoucherOrderService iVoucherOrderService = (IVoucherOrderService) AopContext.currentProxy();
-            return iVoucherOrderService.createVoucherOrder(voucherId);
-        } catch (IllegalStateException e) {
-            log.info("一人一单执行失败：{}",e.getMessage());
-        } finally {
-            simpleRedisLock.unLock();
-        }
-        return Result.fail("一人一单流程执行异常");
+        //创建订单
+        VoucherOrder voucherOrder = new VoucherOrder();
+        voucherOrder.setId(orderId);
+        voucherOrder.setUserId(userId);
+        voucherOrder.setVoucherId(voucherId);
+        // TODO: 2023/2/25 保存到阻塞队列中
+        orderTakes.add(voucherOrder);
+        return Result.ok(orderId);
     }
     @Override
     @Transactional
