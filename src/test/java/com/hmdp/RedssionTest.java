@@ -18,7 +18,7 @@ public class RedssionTest {
     @Resource
     private RedissonClient redissonClentUtil;
     @Test
-    public void redissionDemo() throws InterruptedException {
+    public void remissionDemo() throws InterruptedException {
         //获取锁(可重入)，指定锁的名称
         RLock anyLock = redissonClentUtil.getLock("anyLock");
         //尝试获取锁，参数分别是：获取锁的最大等待时间(期间会重试)，锁自动释放时间，时间单位

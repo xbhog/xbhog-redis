@@ -16,8 +16,8 @@ import java.time.LocalDateTime;
  * 
  * </p>
  *
- * @author 虎哥
- * @since 2021-12-24
+ * @author xbhog
+ * @since 2023年2月27日
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -69,7 +69,7 @@ public class UserInfo implements Serializable {
     private Integer credits;
 
     /**
-     * 会员级别，0~9级,0代表未开通会员
+     * 会员级别，0~9级,0 代表未开通会员
      */
     private Boolean level;
 

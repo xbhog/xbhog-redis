@@ -9,21 +9,19 @@ import com.hmdp.entity.VoucherOrder;
  *  服务类
  * </p>
  *
- * @author 虎哥
- * @since 2021-12-22
+ * @author xbhog
+ * @since 2023年2月27日
  */
 public interface IVoucherOrderService extends IService<VoucherOrder> {
     /**
      * 事务代理调用方法
-     * @param voucherId
-     * @return
+     * @param voucherOrder 订单类
      */
-    Result createVoucherOrder(Long voucherId);
+    void createVoucherOrder(VoucherOrder voucherOrder);
 
     /**
      * 秒杀订单
-     * @param voucherId
-     * @return
+     * @param voucherId 订单Id
      */
     Result seckillVoucher(Long voucherId);
 }
