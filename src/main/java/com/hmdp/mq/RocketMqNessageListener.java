@@ -1,6 +1,5 @@
 package com.hmdp.mq;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
@@ -10,6 +9,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
 
 import static com.hmdp.service.impl.ShopServiceImpl.TOPIC_SHOP;
 
@@ -26,16 +26,14 @@ public class RocketMqNessageListener  implements RocketMQListener<MessageExt> {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
-    @SneakyThrows
     @Override
     public void onMessage(MessageExt message) {
         log.info("========>异步消费开始");
-        String body = null;
-        body = new String(message.getBody(), "UTF-8");
+        String body = new String(message.getBody(), StandardCharsets.UTF_8);
         stringRedisTemplate.delete(body);
         int reconsumeTimes = message.getReconsumeTimes();
         log.info("======>重试次数{}",reconsumeTimes);
-        if(reconsumeTimes > 3){
+        if(3 < reconsumeTimes){
             log.info("消费失败：{}",body);
             return;
         }
