@@ -49,6 +49,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private StringRedisTemplate stringRedisTemplate;
     @Resource
     private RedissonClient redissonClent;
+
     private static final DefaultRedisScript<Long> SPIKE_OPT;
     /**
      * 阻塞队列
