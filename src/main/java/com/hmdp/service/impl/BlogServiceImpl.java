@@ -1,6 +1,5 @@
 package com.hmdp.service.impl;
 
-import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -17,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.hmdp.utils.RedisConstants.BLOG_LIKED_KEY;
 
@@ -70,17 +71,35 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         //获取登录用户
         String userId = UserHolder.getUser().getId().toString();
         String key = BLOG_LIKED_KEY+id;
-        Boolean member = stringRedisTemplate.opsForSet().isMember(key, userId);
-        if(BooleanUtil.isFalse(member)){
+        //返回集合中成员的分数值
+        Double score = stringRedisTemplate.opsForZSet().score(key, userId);
+        if(score == null){
             //未点赞
             //数据库点赞
             //保存到set集合中
-            stringRedisTemplate.opsForSet().add(key,userId);
+            stringRedisTemplate.opsForZSet().add(key,userId,System.currentTimeMillis());
         }else{
             //点赞
             stringRedisTemplate.opsForSet().remove(key,userId);
         }
         return Result.ok("点赞成功");
+    }
+
+    /**
+     * 查询点赞列表
+     * @param id
+     * @return
+     */
+    @Override
+    public Result queryBlogLikes(Long id) {
+        String key = BLOG_LIKED_KEY+id;
+        Set<String> range = stringRedisTemplate.opsForZSet().range(key, 0, 10);
+        if(range == null || range.isEmpty()){
+            return Result.fail("集合未空");
+        }
+        List<Long> collect = range.stream().map(Long::valueOf).collect(Collectors.toList());
+        //根据用户ID查询用相互信息并返回(模拟数据)
+        return Result.ok(UserHolder.getUser());
     }
 
     /**
