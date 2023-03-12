@@ -18,7 +18,6 @@ class HmDianPingApplicationTests {
     private RedisIdWorker redisIdWorker;
 
 
-
     /**
      * 增加活动热key
      * @throws Exception

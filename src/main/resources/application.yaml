@@ -10,9 +10,9 @@ spring:
     password: 111111
   redis:
     database: 0
-    host: localhost    # Redis服务器地址，修改为你的地址
+    host: 1.15.86.246    # Redis服务器地址，修改为你的地址
     port: 6379              # Redis服务器连接端口
-    password: 111111        # Redis服务器连接密码（默认为空）
+    password: redisxbhog123       # Redis服务器连接密码（默认为空）
     timeout: 3000           # Redis服务器链接超时配置
     lettuce:
       pool:
@@ -30,6 +30,6 @@ logging:
   pattern:
     dateformat: mm:ss.SSS
 rocketmq:
-  name-server: 110.40.200.174:9876;localhost:9876
+  name-server: 110.40.200.174:9876
   producer:
     group: shopDataGroup
