@@ -32,7 +32,15 @@ origin/20221221-xbhog-cacheBrenkdown
 3. 增加一人一单逻辑(V)
 4. 解决一人一单并发问题(悲观锁插入数据，事务失效原因及解决，锁颗粒问题等)(V)
 ## 【6】基于redis分布式锁实现
-20230211-xbhog-redisCloud
+20230211-xbhog-redisCloud && 20230214-xbhog-redission
 1. 实现分布式锁(V)
 2. 解决分布式锁误删操作(V)
 3. 解决分布式锁的原子性Lua(V)
+## 【7】基于Redission+lua+阻塞队列实现秒杀优化
+20230225-xbhog-Second_kill_optimization
+1.lua脚本+阻塞队列,更新日期
+## 【8】基于Redis的点赞及点赞排行榜设计
+20230306-xbhog-blogStructure
+1. 增加发布文章功能
+2. 通过set集合实现点赞功能
+3. 通过zset实现点赞排行榜
