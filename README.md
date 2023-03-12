@@ -38,7 +38,7 @@ origin/20221221-xbhog-cacheBrenkdown
 3. 解决分布式锁的原子性Lua(V)
 ## 【7】基于Redission+lua+阻塞队列实现秒杀优化
 20230225-xbhog-Second_kill_optimization
-1.lua脚本+阻塞队列,更新日期
+1. lua脚本+阻塞队列,更新日期
 ## 【8】基于Redis的点赞及点赞排行榜设计
 20230306-xbhog-blogStructure
 1. 增加发布文章功能
